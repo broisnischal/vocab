@@ -1,42 +1,25 @@
 import Layout from "../components/layout"
+import { Script } from "vite-ssr-components/hono"
 
 export default function Index() {
     return (
         <Layout>
-            <h1 className="text-2xl font-bold">Your Vocabulary</h1>
-
-            <ul className="list-disc list-inside">
-                <li>KVM</li>
-                <li>NAS</li>
-                <li>NAT</li>
-                <li>RAID</li>
-                <li>Swarm</li>
-                <li>DNS</li>
-                <li>DHCP</li>
-                <li>HTTP</li>
-                <li>HTTPS</li>
-                <li>TCP</li>
-                <li>UDP</li>
-                <li>ICMP</li>
-                <li>SSH</li>
-                <li>FTP</li>
-                <li>SMTP</li>
-                <li>POP3</li>
-                <li>IMAP</li>
-                <li>SNMP</li>
-                <li>Telnet</li>
-                <li>RDP</li>
-                <li>VNC</li>
-                <li>HTTP</li>
-                <li>FTP</li>
-                <li>SMTP</li>
-                <li>POP3</li>
-                <li>IMAP</li>
-                <li>SNMP</li>
-                <li>Telnet</li>
-                <li>RDP</li>
-                <li>VNC</li>
-            </ul>
+            <div className="flex items-center justify-between mb-6">
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+                        Vocabulary Graph
+                    </h1>
+                    <p className="text-sm text-gray-500 mt-1">
+                        Hover over nodes to explore connections
+                    </p>
+                </div>
+            </div>
+            <div
+                id="sigma-container"
+                className="w-full rounded-2xl border border-gray-200/80 bg-white overflow-hidden"
+                style={{ height: "calc(100vh - 200px)" }}
+            />
+            <Script src="/src/client/graph.ts" type="module" />
         </Layout>
     )
 }   
