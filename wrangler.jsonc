@@ -2,5 +2,6 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "vocab",
   "compatibility_date": "2025-08-03",
+  "compatibility_flags": ["nodejs_compat"],
   "main": "./src/index.tsx"
 }

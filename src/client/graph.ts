@@ -1,7 +1,7 @@
 import Graph from "graphology";
 import Sigma from "sigma";
+import forceAtlas2 from "graphology-layout-forceatlas2";
 import { EdgeDisplayData, NodeDisplayData } from "sigma/types";
-
 
 interface VocabData {
     root: string;
@@ -9,7 +9,7 @@ interface VocabData {
 }
 
 const data: VocabData = {
-    root: "Tech & Engineering",
+    root: "Engineering",
     categories: {
         // ── Networking ──
         "Network Protocols": {
@@ -101,20 +101,21 @@ const data: VocabData = {
 
 const graph = new Graph();
 
-// Root node
+// Seed positions: radial layout as starting point for force simulation
+const catEntries = Object.entries(data.categories);
+const catCount = catEntries.length;
+const catRadius = 100;
+const itemDist = 50;
+
+// Root node (center)
 graph.addNode("root", {
     x: 0,
     y: 0,
-    size: 12,
+    size: 14,
     color: "#0f172a",
     label: data.root,
     nodeKind: "center",
 });
-
-const catEntries = Object.entries(data.categories);
-const catCount = catEntries.length;
-const catRadius = 22;
-const itemDist = 10;
 
 catEntries.forEach(([category, { color, items }], ci) => {
     const catAngle = (2 * Math.PI * ci) / catCount - Math.PI / 2;
@@ -124,7 +125,7 @@ catEntries.forEach(([category, { color, items }], ci) => {
     graph.addNode(category, {
         x: cx,
         y: cy,
-        size: 7,
+        size: 8,
         color,
         label: category,
         nodeKind: "category",
@@ -132,8 +133,8 @@ catEntries.forEach(([category, { color, items }], ci) => {
 
     graph.addEdge("root", category, { size: 0.6, color: "#d1d5db" });
 
-    // Fan items outward from category
-    const arcPerItem = 0.20;
+    // Spread items in a small arc around the category direction
+    const arcPerItem = 0.28;
     const totalArc = (items.length - 1) * arcPerItem;
 
     items.forEach((item, ii) => {
@@ -152,6 +153,24 @@ catEntries.forEach(([category, { color, items }], ci) => {
 
         graph.addEdge(category, id, { size: 0.4, color: "#e5e7eb" });
     });
+});
+
+// ─── Force-directed layout ──────────────────────────────────────────────────
+// Run ForceAtlas2 to organically spread nodes and eliminate overlaps
+
+forceAtlas2.assign(graph, {
+    iterations: 600,
+    settings: {
+        gravity: 0.05,
+        scalingRatio: 20,
+        barnesHutOptimize: true,
+        barnesHutTheta: 0.5,
+        strongGravityMode: false,
+        adjustSizes: true,
+        linLogMode: false,
+        outboundAttractionDistribution: true,
+        slowDown: 5,
+    },
 });
 
 // ─── Interaction state ───────────────────────────────────────────────────────
