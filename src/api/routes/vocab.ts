@@ -15,6 +15,7 @@ const createSchema = z.object({
   definition: z.string().optional(),
   examples: z.array(z.string()).optional(),
   synonyms: z.array(z.string()).optional(),
+  antonyms: z.array(z.string()).optional(),
 });
 
 vocabRoutes.post("/", async (c) => {
@@ -27,6 +28,7 @@ vocabRoutes.post("/", async (c) => {
     body.definition ? `definition: ${body.definition}` : "",
     body.examples?.length ? `examples: ${body.examples.join(" | ")}` : "",
     body.synonyms?.length ? `synonyms: ${body.synonyms.join(", ")}` : "",
+    body.antonyms?.length ? `antonyms: ${body.antonyms.join(", ")}` : "",
   ]
     .filter(Boolean)
     .join("\n");
@@ -44,6 +46,7 @@ vocabRoutes.post("/", async (c) => {
       definition: body.definition,
       examples: body.examples ?? [],
       synonyms: body.synonyms ?? [],
+      antonyms: body.antonyms ?? [],
       embedding: sql`${vecSql}::vector`,
     })
     .returning();

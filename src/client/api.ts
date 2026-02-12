@@ -13,6 +13,7 @@ export interface VocabInput {
   definition?: string;
   examples?: string[];
   synonyms?: string[];
+  antonyms?: string[];
 }
 
 export interface VocabRow {
@@ -23,6 +24,7 @@ export interface VocabRow {
   definition: string | null;
   examples: string[];
   synonyms: string[];
+  antonyms: string[];
   createdAt: string;
 }
 
@@ -65,8 +67,10 @@ export async function searchVocab(params: SearchParams) {
 export interface GraphNode {
   id: string;
   label: string;
-  kind: "center" | "related" | "synonym";
+  kind: "center" | "pos-group" | "synonym" | "antonym" | "related";
+  pos: string | null;
   level: string | null;
+  definition: string | null;
   score?: number;
 }
 
@@ -74,7 +78,13 @@ export interface GraphEdge {
   source: string;
   target: string;
   weight: number;
-  type: "related" | "synonym";
+  edgeKind:
+    | "has-pos"
+    | "synonym"
+    | "antonym"
+    | "semantic"
+    | "synonym-chain"
+    | "shared-synonym";
 }
 
 export async function fetchGraph(word: string) {

@@ -18,6 +18,7 @@ export const vocab = pgTable(
     definition: text("definition"),
     examples: jsonb("examples").$type<string[]>().default([]),
     synonyms: jsonb("synonyms").$type<string[]>().default([]),
+    antonyms: jsonb("antonyms").$type<string[]>().default([]),
     embedding: vector("embedding", { dimensions: 384 }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()

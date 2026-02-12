@@ -33,8 +33,8 @@ export default function GraphPage() {
           </form>
         </div>
 
-        {/* Status */}
-        <div id="graph-status" className="text-sm text-gray-400 mb-3" />
+        {/* Status — fixed height to prevent layout shift */}
+        <div id="graph-status" className="text-sm text-gray-400 mb-3 h-5" />
 
         {/* Sigma container */}
         <div
@@ -43,17 +43,17 @@ export default function GraphPage() {
         >
           <div
             id="graph-placeholder"
-            className="absolute inset-0 flex items-center justify-center text-gray-300 text-sm"
+            className="absolute inset-0 flex  items-center justify-center text-gray-300 text-sm"
           >
             Enter a word above to explore its connections
           </div>
-        </div>
 
-        {/* Node info panel */}
-        <div
-          id="node-info"
-          className="hidden mt-4 rounded-xl border border-gray-100 bg-gray-50/50 p-4"
-        />
+          {/* Node info panel — absolute overlay, no layout shift */}
+          <div
+            id="node-info"
+            className="hidden opacity-0 absolute bottom-4 left-4 z-20 max-w-sm rounded-xl border border-gray-200 bg-white/95 backdrop-blur-sm shadow-lg p-3 pointer-events-none transition-opacity duration-150"
+          />
+        </div>
       </div>
       <Script src="/src/client/vocabGraph.ts" type="module" />
     </Layout>
