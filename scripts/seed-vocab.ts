@@ -8,6 +8,8 @@
  */
 
 const SERVER = process.env.SERVER_URL ?? "http://localhost:5173";
+const DICT_API_BASE =
+  process.env.DICT_API_BASE ?? "https://api.dictionaryapi.dev/api/v2/entries/en";
 
 // ── Word list to seed ────────────────────────────────────────────────────────
 // Add/remove words here as you like
@@ -90,17 +92,61 @@ interface DictEntry {
   meanings: DictMeaning[];
 }
 
-async function fetchWord(word: string): Promise<DictEntry | null> {
-  try {
-    const res = await fetch(
-      `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`
-    );
-    if (!res.ok) return null;
-    const data = (await res.json()) as DictEntry[];
-    return data[0] ?? null;
-  } catch {
-    return null;
+type FetchWordResult =
+  | { ok: true; entry: DictEntry }
+  | { ok: false; kind: "not_found" | "rate_limited" | "http_error" | "network_error"; detail?: string };
+
+async function fetchWord(word: string, retries = 2): Promise<FetchWordResult> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(`${DICT_API_BASE}/${encodeURIComponent(word)}`, {
+        headers: {
+          Accept: "application/json",
+          // Some providers behave better with an explicit user-agent.
+          "User-Agent": "vocab-seeder/1.0",
+        },
+      });
+
+      if (res.status === 404) {
+        return { ok: false, kind: "not_found" };
+      }
+
+      if (res.status === 429) {
+        if (attempt < retries) {
+          await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+          continue;
+        }
+        return { ok: false, kind: "rate_limited", detail: "HTTP 429 from dictionary API" };
+      }
+
+      if (!res.ok) {
+        const responseBody = await res.text().catch(() => "");
+        const detail = `HTTP ${res.status} ${res.statusText}${responseBody ? `: ${responseBody.slice(0, 140)}` : ""}`;
+        if (attempt < retries && res.status >= 500) {
+          await new Promise((r) => setTimeout(r, 500 * (attempt + 1)));
+          continue;
+        }
+        return { ok: false, kind: "http_error", detail };
+      }
+
+      const data = (await res.json()) as DictEntry[];
+      const entry = data[0] ?? null;
+      if (!entry) return { ok: false, kind: "http_error", detail: "Empty API response" };
+      return { ok: true, entry };
+    } catch (err: any) {
+      if (attempt < retries) {
+        await new Promise((r) => setTimeout(r, 500 * (attempt + 1)));
+        continue;
+      }
+      return {
+        ok: false,
+        kind: "network_error",
+        detail: err?.message ?? "Unknown network error",
+      };
+    }
   }
+
+  return { ok: false, kind: "http_error", detail: "Unknown fetch failure" };
 }
 
 // ── Post to local server ─────────────────────────────────────────────────────
@@ -136,13 +182,19 @@ async function main() {
     // Small delay to be polite to the free API
     await new Promise((r) => setTimeout(r, 300));
 
-    const entry = await fetchWord(word);
-
-    if (!entry || !entry.meanings?.length) {
-      console.log(`  ✗ ${word} — not found in dictionary`);
+    const fetchResult = await fetchWord(word);
+    if (!fetchResult.ok) {
+      if (fetchResult.kind === "not_found") {
+        console.log(`  ✗ ${word} — not found in dictionary`);
+      } else {
+        const reason = fetchResult.detail ?? fetchResult.kind;
+        console.log(`  ✗ ${word} — dictionary fetch failed (${reason})`);
+      }
       failed++;
       continue;
     }
+
+    const entry = fetchResult.entry;
 
     // Pick the first meaning
     const meaning = entry.meanings[0];
