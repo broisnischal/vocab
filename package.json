@@ -11,7 +11,7 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
     "d3.js": "^0.0.2-security",
-    "drizzle-orm": "^0.45.1",
+    "drizzle-orm": "^0.45.2",
     "geist": "^1.7.0",
     "graphology": "^0.26.0",
     "graphology-layout": "^0.6.1",
