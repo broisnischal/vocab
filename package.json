@@ -16,7 +16,7 @@
     "graphology": "^0.26.0",
     "graphology-layout": "^0.6.1",
     "graphology-layout-forceatlas2": "^0.10.1",
-    "hono": "^4.11.9",
+    "hono": "^4.12.14",
     "postgres": "^3.4.8",
     "react": "^19.2.4",
     "sigma": "^3.0.2",
